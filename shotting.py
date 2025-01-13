@@ -19,8 +19,8 @@ def main():
   face_p = pg.Vector2(50, 90)  # 位置
   face_v = pg.Vector2(2, 0)   # 速度
   face_a = pg.Vector2(0, 0.2)  # 加速度
-  face_img = pg.image.load(f'data/img/bow.png')
-  ground_img = pg.image.load(f'data/img/map-ground.png')
+  ground_img = pg.image.load(f'data/img/map_ground_renga.png')
+  # face_img = pg.image.load(f'data/img/bow.png')
   ground_s = pg.Vector2(48, 48)
 
   # ゲームループ

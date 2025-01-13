@@ -5,7 +5,7 @@ def main():
 
   # 初期化処理
   pg.init()
-  pg.display.set_caption('ぼくのかんがえたさいきょうのげーむ')
+  pg.display.set_caption('シューティングゲーム')
   disp_w, disp_h = 800, 600
   screen = pg.display.set_mode((disp_w, disp_h))
   clock = pg.time.Clock()

@@ -92,6 +92,7 @@ def show_game_over_screen(screen, font, score):
           waiting = False
   return True
 
+# ゲームクリア画面
 def show_game_clear_screen(screen, font, score):
   screen.fill(pg.Color('WHITE'))
   game_clear_text = font.render("ゲームクリア！！", True, "GREEN")
@@ -189,7 +190,7 @@ def main():
           elif event.key == pg.K_SPACE:  # スペースキーで矢を発射
             # 速度(0,15)の矢を出現させる
             arrows.append(Arrow(bow_p.x, bow_p.y + 0, pg.Vector2(0, 15)))
-          elif event.key == pg.K_0:
+          elif event.key == pg.K_0:  # テストプレイのためのコマンド
             bow_hp = 999
 
       # 背景描画
@@ -346,6 +347,7 @@ def main():
       pg.display.update()
       clock.tick(30)
 
+      # ゲームオーバー条件
       if bow_hp <= 0:  # 弓の体力が0になったら
         exit_flag = True
         if not show_game_over_screen(screen, font, score):  # ゲームオーバー画面
@@ -353,7 +355,7 @@ def main():
           return "001"
 
       # ゲームクリアチェック
-      if not balls and ball_increase_timer >= 60000:  # もしボールが存在しないなら
+      if not balls and ball_increase_timer >= 60000:  # もしボールが存在せず、ゲームスタートから60秒経過
         exit_flag = True
         if not show_game_clear_screen(screen, font, score):  # ゲームクリア画面
           pg.quit()

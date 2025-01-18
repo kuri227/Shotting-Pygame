@@ -97,15 +97,12 @@ def show_game_clear_screen(screen, font, score):
   screen.fill(pg.Color('WHITE'))
   game_clear_text = font.render("ゲームクリア！！", True, "GREEN")
   score_text = font.render(f"最終スコア: {score}", True, "BLACK")
-  hp_text = font.render(f"クリア時のあなたのHP: {bow_hp}", True, "BLACK")
   restart_text = font.render("スペースキーを押して再プレイ", True, "BLACK")
 
   screen.blit(game_clear_text, (disp_w // 2 -
               game_clear_text.get_width() // 2, disp_h // 4))
   screen.blit(score_text, (disp_w // 2 -
               score_text.get_width() // 2, disp_h // 2))
-  screen.blit(hp_text, (disp_w // 2 -
-              hp_text.get_width() // 2, disp_h // 2 + 20))
   screen.blit(restart_text, (disp_w // 2 -
               restart_text.get_width() // 2, disp_h * 3 // 4))
 

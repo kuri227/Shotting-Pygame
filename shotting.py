@@ -6,18 +6,19 @@ chip_s = 48
 map_s = pg.Vector2(16, 9)
 disp_w = int(chip_s * map_s.x)
 disp_h = int(chip_s * map_s.y)
+bow_hp = 3
 
 
-class Arrow:
+class Arrow:  # 矢に関するクラス
   def __init__(self, x, y, velocity):
     self.position = pg.Vector2(x * chip_s, y * chip_s)
     self.velocity = velocity
     self.size = pg.Vector2(48, 48)
 
-  def updata(self):
+  def updata(self):  # 位置の更新
     self.position += self.velocity
 
-  def is_off_screen(self, screen_height):
+  def is_off_screen(self, screen_height):  # 描画有効範囲に関する設定
     return screen_height - self.position.y + 10 < 0
 
   def collide(self, rect):
@@ -25,7 +26,7 @@ class Arrow:
                          self.size.x, self.size.y)
     return arrow_rect.colliderect(rect)
 
-class Ball:
+class Ball:  # ボールに関するクラス
   def __init__(self, x, y, radius, v_x, v_y):
     self.position = pg.Vector2(x, y)
     self.velocity = pg.Vector2(v_x, v_y)
@@ -35,7 +36,7 @@ class Ball:
     self.hp = r.randint(3, 5)
     self.initial_hp = self.hp
 
-  def updata(self):
+  def updata(self):  # 位置、速度の更新
     self.position += self.velocity
     self.velocity += self.acceleration
 
@@ -44,7 +45,7 @@ class Ball:
                         self.size.x, self.size.y)
     return ball_rect.colliderect(rect)
 
-# メインメニュー画面の表示
+# スタート画面の表示
 def show_start_menu(screen, font):
   screen.fill(pg.Color('WHITE'))
   menu_text = font.render("スペースキーを押してスタート！！", True, "BLACK")
@@ -52,7 +53,7 @@ def show_start_menu(screen, font):
               menu_text.get_width() // 2, disp_h // 2))
   pg.display.update()
 
-  # メニュー画面の待機
+  # スタート画面での待機
   waiting = True
   while waiting:
     for event in pg.event.get():
@@ -91,6 +92,35 @@ def show_game_over_screen(screen, font, score):
           waiting = False
   return True
 
+def show_game_clear_screen(screen, font, score):
+  screen.fill(pg.Color('WHITE'))
+  game_clear_text = font.render("ゲームクリア！！", True, "GREEN")
+  score_text = font.render(f"最終スコア: {score}", True, "BLACK")
+  hp_text = font.render(f"クリア時のあなたのHP: {bow_hp}", True, "BLACK")
+  restart_text = font.render("スペースキーを押して再プレイ", True, "BLACK")
+
+  screen.blit(game_clear_text, (disp_w // 2 -
+              game_clear_text.get_width() // 2, disp_h // 4))
+  screen.blit(score_text, (disp_w // 2 -
+              score_text.get_width() // 2, disp_h // 2))
+  screen.blit(hp_text, (disp_w // 2 -
+              hp_text.get_width() // 2, disp_h // 2 + 20))
+  screen.blit(restart_text, (disp_w // 2 -
+              restart_text.get_width() // 2, disp_h * 3 // 4))
+
+  pg.display.update()
+
+  # ゲームクリア画面での待機
+  waiting = True
+  while waiting:
+    for event in pg.event.get():
+      if event.type == pg.QUIT:
+        return False
+      if event.type == pg.KEYDOWN:
+        if event.key == pg.K_SPACE:
+          waiting = False
+  return True
+
 def main():
 
   # 初期化処理
@@ -105,10 +135,11 @@ def main():
   while True:
     score = 0     # 得点カウントのための変数
     ball_spawn_timer = 0  # ボール再スポーンまでの時間をカウントする変数
-    ball_increase_timer = 0
+    ball_increase_timer = 0  # ボールの出現個数を増やすためのタイマー
     frame = 0
     exit_flag = False
 
+    # スタート画面
     if not show_start_menu(screen, font):
       pg.quit()
       return "001"
@@ -122,24 +153,24 @@ def main():
 
   # 弓の画像読み込み、表示設定
     bow_hp = 3
-    bow_p = pg.Vector2(5, 3)
-    bow_s = pg.Vector2(48, 48)
-    damage = 0
-    bow_img = pg.image.load(f'data/img/bow.png')
-    bow_img = pg.transform.rotozoom(bow_img, 45, 1)
-    bow_img = pg.transform.scale(bow_img, (chip_s, chip_s))
+    bow_p = pg.Vector2(5, 3)  # 位置
+    bow_s = pg.Vector2(48, 48)  # サイズ
+    damage = 0  # 無敵時間のカウント変数
+    bow_img = pg.image.load(f'data/img/bow.png')  # 画像の読み込み
+    bow_img = pg.transform.rotozoom(bow_img, 45, 1)  # 画像を上向きに
+    bow_img = pg.transform.scale(bow_img, (chip_s, chip_s))  # 画像を(48,48)に加工
 
   # 矢の画像読み込み、表示設定
-    arrows = []
-    arrow_img = pg.image.load(f"data/img/arrow.png")
-    arrow_img = pg.transform.rotozoom(arrow_img, -45, 1)
-    arrow_img = pg.transform.scale(arrow_img, (chip_s, chip_s))
+    arrows = []  # 矢を管理するためのリスト
+    arrow_img = pg.image.load(f"data/img/arrow.png")  # 画像の読み込み
+    arrow_img = pg.transform.rotozoom(arrow_img, -45, 1)  # 画像を上向きに
+    arrow_img = pg.transform.scale(arrow_img, (chip_s, chip_s))  # 画像を(48,48)に加工
 
   # ボールリストと初期化
     balls = [Ball(50, 20, 24, 3, 2)]
 
   # 地面の画像読み込み、表示設定
-    ground_img = pg.image.load(f'data/img/map_ground_renga.png')
+    ground_img = pg.image.load(f'data/img/map_ground_renga.png')  # 画像読み込み
     ground_s = pg.Vector2(48, 48)
 
     while not exit_flag:
@@ -151,21 +182,24 @@ def main():
           exit_flag = True
           exit_code = '001'
         if event.type == pg.KEYDOWN:
-          if event.key == pg.K_RIGHT:
+          if event.key == pg.K_RIGHT:  # →が押されたとき
             cmd_move = 0
-          elif event.key == pg.K_LEFT:
+          elif event.key == pg.K_LEFT:  # ←が押されたとき
             cmd_move = 1
           elif event.key == pg.K_SPACE:  # スペースキーで矢を発射
+            # 速度(0,15)の矢を出現させる
             arrows.append(Arrow(bow_p.x, bow_p.y + 0, pg.Vector2(0, 15)))
+          elif event.key == pg.K_0:
+            bow_hp = 999
 
       # 背景描画
       screen.fill(pg.Color('WHITE'))
 
       # グリッド
-      for x in range(0, disp_w, chip_s):  # 縦線
-        pg.draw.line(screen, grid_c, (x, 0), (x, disp_h))
-      for y in range(0, disp_h, chip_s):  # 横線
-        pg.draw.line(screen, grid_c, (0, y), (disp_w, y))
+      # for x in range(0, disp_w, chip_s):  # 縦線
+      #   pg.draw.line(screen, grid_c, (x, 0), (x, disp_h))
+      # for y in range(0, disp_h, chip_s):  # 横線
+      #   pg.draw.line(screen, grid_c, (0, y), (disp_w, y))
 
       # 移動コマンドの処理
       if cmd_move != -1:
@@ -175,42 +209,43 @@ def main():
 
       # 矢の更新処理
       for arrow in arrows[:]:
-        arrow.updata()
+        arrow.updata()  # 矢の位置を更新
         if arrow.is_off_screen(disp_h):
-          arrows.remove(arrow)
+          arrows.remove(arrow)  # 描画有効範囲外にいるなら矢を消去
 
+      # ボールの出現に関する設定
       ball_spawn_timer += clock.get_time()
       ball_increase_timer += clock.get_time()
-      if ball_increase_timer <= 20000:
-        if ball_spawn_timer >= 5000:
+      if ball_increase_timer <= 20000:  # ゲーム開始から20秒以内
+        if ball_spawn_timer >= 5000:  # 前にボールが出現してから5秒以上
+          ball_spawn_timer = 0
+          new_ball = Ball(r.randint(0, int(map_s.x) - 1) * chip_s,  # 位置のx座標は画面内でランダム
+                          20, 24, r.randint(3, 6), 2)  # 速度のx成分は3~6の間でランダム
+          balls.append(new_ball)  # 新しくボールを作成する
+
+      elif ball_increase_timer <= 30000:  # ゲーム開始から30秒以内
+        if ball_spawn_timer >= 4000:  # 前にボールが出現してから4秒以上
           ball_spawn_timer = 0
           new_ball = Ball(r.randint(0, int(map_s.x) - 1) * chip_s,
-                          20, 24, r.randint(3, 6), 2)
+                          20, 24, r.randint(3, 8), 2)  # 速度のx成分は3~8の間でランダム
           balls.append(new_ball)
 
-      elif ball_increase_timer <= 30000:
-        if ball_spawn_timer >= 4000:
-          ball_spawn_timer = 0
-          new_ball = Ball(r.randint(0, int(map_s.x) - 1) * chip_s,
-                          20, 24, r.randint(3, 8), 2)
-          balls.append(new_ball)
-
-      elif ball_increase_timer <= 40000:
-        if ball_spawn_timer >= 3000:
-          ball_spawn_timer = 0
-          new_ball = Ball(r.randint(0, int(map_s.x) - 1) * chip_s,
-                          20, 24, r.randint(3, 8), 2)
-          balls.append(new_ball)
-
-      elif ball_increase_timer <= 50000:
-        if ball_spawn_timer >= 2500:
+      elif ball_increase_timer <= 40000:  # ゲーム開始から40秒以内
+        if ball_spawn_timer >= 3000:  # 前にボールが出現してから3秒以上
           ball_spawn_timer = 0
           new_ball = Ball(r.randint(0, int(map_s.x) - 1) * chip_s,
                           20, 24, r.randint(3, 8), 2)
           balls.append(new_ball)
 
-      elif ball_increase_timer <= 60000:
-        if ball_spawn_timer >= 2000:
+      elif ball_increase_timer <= 50000:  # ゲーム開始から50秒以内
+        if ball_spawn_timer >= 2500:  # 前にボールが出現してから2.5秒以上
+          ball_spawn_timer = 0
+          new_ball = Ball(r.randint(0, int(map_s.x) - 1) * chip_s,
+                          20, 24, r.randint(3, 8), 2)
+          balls.append(new_ball)
+
+      elif ball_increase_timer <= 60000:  # ゲーム開始から60秒以内
+        if ball_spawn_timer >= 2000:  # 前にボールが出現してから2秒以上
           ball_spawn_timer = 0
           new_ball = Ball(r.randint(0, int(map_s.x) - 1) * chip_s,
                           20, 24, r.randint(3, 8), 2)
@@ -218,7 +253,7 @@ def main():
 
       # ボールの更新処理と描画
       for ball in balls:
-        ball.updata()
+        ball.updata()  # ボールの位置、速度を更新
 
         # 地面との衝突処理
         if ball.position.y >= disp_h - ground_s.y - ball.radius:
@@ -240,12 +275,12 @@ def main():
         pg.draw.circle(screen, pg.Color("#ff0000"), (int(
             ball.position.x), int(ball.position.y)), int(ball.radius), width=2)
 
-        # hp表示
+        # ボールのhp表示
         hp_str = f"HP: {ball.hp}"
         screen.blit(font.render(hp_str, True, "BLACK"), (int(
             ball.position.x - ball.radius), int(ball.position.y - ball.radius - 10)))
 
-      # 弓の描画、位置の更新
+      # 弓の描画
       bow_dp = pg.Vector2(bow_p.x * chip_s, disp_h - ground_s.y - chip_s)
       screen.blit(bow_img, bow_dp)
 
@@ -258,63 +293,73 @@ def main():
         # 矢とボールの当たり判定の検出
         for ball in balls[:]:
           ball_rect = pg.Rect(ball.position.x - ball.radius, ball.position.y - ball.radius,
-                              ball.size.x, ball.size.y)
+                              ball.size.x, ball.size.y)  # ボールの当たり判定を作成
 
           arrow_rect = pg.Rect(arrow.position.x, disp_h -
-                               arrow.position.y, arrow.size.x, arrow.size.y)
+                               arrow.position.y, arrow.size.x, arrow.size.y)  # 矢の当たり判定を作成
 
-          if arrow_rect.colliderect(ball_rect):
+          if arrow_rect.colliderect(ball_rect):  # ボールが矢と接触したかを判定
             # print("矢がボールに当たった")
-            ball.hp -= 1
-            score += 1
-            arrows.remove(arrow)
-            if ball.hp <= 0:
-              score += ball.initial_hp
-              balls.remove(ball)
+            ball.hp -= 1  # ボールの体力を減少
+            score += 1  # スコアを1加算
+            arrows.remove(arrow)  # 矢を消去
+            if ball.hp <= 0:  # ボールのHPが0なら
+              score += ball.initial_hp  # 倒したボールの総HPをスコアに加算
+              balls.remove(ball)  # ボールを消去
             break
 
       for ball in balls[:]:
         ball_rect = pg.Rect(ball.position.x - ball.radius, ball.position.y - ball.radius,
-                            ball.size.x, ball.size.y)
+                            ball.size.x, ball.size.y)  # ボールの当たり判定を作成
 
         bow_rect = pg.Rect(bow_p.x * chip_s, disp_h -
-                           bow_p.y * chip_s, bow_s.x, bow_s.y)
-        if damage == 0:
-          if ball_rect.colliderect(bow_rect):
-            bow_hp -= 1
-            damage = 20
+                           bow_p.y * chip_s, bow_s.x, bow_s.y)  # 弓の当たり判定を作成
+        if damage == 0:  # 無敵時間がなければ
+          if ball_rect.colliderect(bow_rect):  # ボールが弓と接触しているか判定
+            bow_hp -= 1  # 弓のHPを1減少
+            damage = 20  # 無敵時間を20フレーム付与
         else:
-          damage -= 1
+          damage -= 1  # 無敵時間を減少
 
       # 地面描画
       for x in range(0, disp_w, int(ground_s.x)):
         screen.blit(ground_img, (x, disp_h - ground_s.y))
 
+      # 弓のHPを左上に表示
       bow_hp_str = f"HP: {bow_hp}"
-      screen.blit(font.render(bow_hp_str, True, "BLACK"), (10, 70))
+      screen.blit(font.render(bow_hp_str, True, "BLACK"), (10, 50))
 
+      # ゲーム開始からの経過時間を左上に表示
       time = ball_increase_timer // 1000
       time_str = f"Time: {time}"
-      screen.blit(font.render(time_str, True, "BLACK"), (10, 50))
+      screen.blit(font.render(time_str, True, "BLACK"), (10, 10))
 
+      # 現在の得点を左上に表示
       score_str = f"Score: {score}"
       screen.blit(font.render(score_str, True, "BLACK"), (10, 30))
 
       # フレームカウンタの描画
-      frame += 1
-      frm_str = f'{frame:05}'
-      screen.blit(font.render(frm_str, True, 'BLACK'), (10, 10))
+      # frame += 1
+      # frm_str = f'{frame:05}'
+      # screen.blit(font.render(frm_str, True, 'BLACK'), (10, 10))
 
       pg.display.update()
       clock.tick(30)
 
-      if bow_hp <= 0:
+      if bow_hp <= 0:  # 弓の体力が0になったら
         exit_flag = True
-        if not show_game_over_screen(screen, font, score):
+        if not show_game_over_screen(screen, font, score):  # ゲームオーバー画面
+          pg.quit()  # [X]が押されたとき
+          return "001"
+
+      # ゲームクリアチェック
+      if not balls and ball_increase_timer >= 60000:  # もしボールが存在しないなら
+        exit_flag = True
+        if not show_game_clear_screen(screen, font, score):  # ゲームクリア画面
           pg.quit()
           return "001"
 
-    continue
+    continue  # スタート画面に戻る（再度プレイ）
 
   pg.quit()
   return "000"

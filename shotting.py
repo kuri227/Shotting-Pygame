@@ -137,7 +137,7 @@ def main():
     score = 0     # 得点カウントのための変数
     ball_spawn_timer = 0  # ボール再スポーンまでの時間をカウントする変数
     ball_increase_timer = 0  # ボールの出現個数を増やすためのタイマー
-    frame = 0
+    # frame = 0
     exit_flag = False
 
     # スタート画面
@@ -146,7 +146,7 @@ def main():
       return "001"
 
     # グリッド設定
-    grid_c = "#bbbbbb"
+    # grid_c = "#bbbbbb"
 
     # 自キャラ移動関連のパラメータ設定
     cmd_move = -1  # 移動コマンドの管理変数
